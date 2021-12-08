@@ -7,7 +7,7 @@
   (util/->integers "16,1,2,0,4,2,7,1,2,14"))
 
 (def positions
-  (-> (util/read-file "../resources/aoc/day7.txt")
+  (-> (util/read-file "../resources/aoc/2021/day7.txt")
       (util/->integers)))
 
 (defn fuel-move [pos final-position]
