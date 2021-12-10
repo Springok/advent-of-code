@@ -42,13 +42,14 @@
         count-col (dec (mat/column-count hmap))]
     (->> sets
       (reduce (fn [ac e] (apply conj ac (adjacent-points e count-row count-col))) #{})
-      (filter #(keep? hmap %)))))
+      (filter #(keep? hmap %))
+      (apply conj #{}))))
 
 (defn visit-all-basin [start hmap]
   (loop [next-ps (explore hmap #{start})
          visited #{start}
          idx 0]
-      (if (= visited (apply conj #{} (explore hmap visited)))
+      (if (= visited (explore hmap visited))
           visited
          (recur (explore hmap visited) (apply conj visited next-ps) (inc idx)))))
 
