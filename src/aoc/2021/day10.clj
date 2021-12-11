@@ -12,33 +12,12 @@
 (def input
   (->> (util/read-file-by-line "../resources/aoc/2021/day10.txt")))
 
-(def pair-map
-  {"(" ")"
-   "[" "]"
-   "{" "}"
-   "<" ">"})
-
-(def opening-set
-  #{"(" "[" "{" "<"})
-
 (def valid-pairs
   #"\<\>|\[\]|\{\}|\(\)")
 
 (def corruptted-pairs
   ;; #"\[\>")
   #"\(\>|\(\}|\(\]|\[\>|\[\)|\[\}|\{\]|\{\>|\{\)|\<\)|\<\]|\<\}")
-
-(def points
-  {")" 3
-   "]" 57
-   "}" 1197
-   ">" 25137})
-
-(def score
-  {")" 1
-   "]" 2
-   "}" 3
-   ">" 4})
 
 (defn delete-pair [s]
   (str/replace s valid-pairs ""))
@@ -47,9 +26,8 @@
   (loop [line line
          idx 0]
    (let [corruptted-pair (re-find corruptted-pairs line)
-         nomore-pairs? (str/blank? (re-find valid-pairs line))
-         corruptted? (and nomore-pairs? (not (str/blank? corruptted-pair)))
-         all-open? (set/superset? opening-set (set (str/split line #"")))]
+         corruptted? (not (str/blank? corruptted-pair))
+         all-open? (set/superset? #{"(" "[" "{" "<"} (set (str/split line #"")))]
      ;; (prn line)
      ;; (prn all-open?)
      ;; (prn idx)
@@ -64,8 +42,8 @@
 
 (defn closing-score [s]
   (->> (reverse (str/split s #""))
-       (map #(get pair-map %))
-       (map #(get score %))
+       (map {"(" ")" "[" "]" "{" "}" "<" ">"})
+       (map {")" 1 "]" 2 "}" 3 ">" 4})
        (reduce (fn [acc score] (+ (* 5 acc) score)))))
 
 (defn solve! [scores]
@@ -76,7 +54,7 @@
   (->> (map examine lines)
        (filter #(= "corruptted" (get % :status)))
        (map :info)
-       (map #(get points (str (last %))))
+       (map #({")" 3 "]" 57 "}" 1197 ">" 25137} (str (last %))))
        (reduce +)))
 
 (defn part2 [lines]
