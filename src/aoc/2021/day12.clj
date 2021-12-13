@@ -3,32 +3,64 @@
   (:require
     [aoc.util :as util]
     [clojure.string :as str]
-    [clojure.core.matrix :as mat]
-    [clojure.set :as set]
-    [clojure.test :refer [deftest is]]
-    [loom.graph :as graph]
-    [loom.gen :as gen]
-    [loom.alg :as alg]
-    [loom.alg-generic :as alg-gen]))
+    [clojure.test :refer [deftest is]]))
 
 (def input
   (->> (util/read-file-by-line "../resources/aoc/2021/day12.txt")))
 
-(defn ->nodes [edges]
+(defn ->pairs [edges]
   (->> edges
     (map #(map keyword (str/split % #"-")))))
 
-(defn path [cave-system start end path-visited])
+(defn ->cave-system [pairs]
+  (reduce (fn [m [from to]]
+            (cond
+              (= from :start) (-> m (update :start #(conj (vec %) to)))
+              (= to :start)   (-> m (update :start #(conj (vec %) from)))
+              (= from :end)   (-> m (update to #(conj (vec %) :end)))
+              (= to :end)     (-> m (update from #(conj (vec %) :end)))
+              :else (-> m
+                        (update from #(conj (vec %) to))
+                        (update to #(conj (vec %) from)))))
+          {}
+          pairs))
 
-(defn paths [cave-system start end]
-  (loop [paths []
-         idx 0]
-     (if (= idx 10)
-       paths
-       (recur (conj paths (path cave-system start end paths)) (inc idx)))))
+
+(defn path-with-only-once-small-cave? [path small-caves]
+  (->> small-caves
+       (map (frequencies path))
+       (remove nil?)
+       (every? #(<= % 1))))
+
+(defn all-paths [cave-system path]
+  ;; (prn (partition 2 1 path))
+  ;; (prn "start" (peek path))
+  (let [start (peek path)]
+    (->> (start cave-system)
+         (filter #(not-any? (fn [edge] (= edge [start %])) (partition 2 1 path)))
+         (mapcat #(all-paths cave-system (conj path %)))
+         (cons path)
+         (filter #(= :end (last %))))))
+
+(comment
+  (cons [:start :12] [:12])
+  (partition 2 1 [:start]))
+
+(defn small-caves [cave-system]
+  (->> (keys cave-system)
+       (remove #(or (= % :start) (= % :end)))
+       (filter #(= (str %) (str/lower-case %)))))
+
 
 (defn part1 [edges]
-  (prn edges))
+  (let [pairs (->pairs edges)
+        cave-system (->cave-system pairs)
+        small-caves (small-caves cave-system)]
+    (prn cave-system)
+    (->> (all-paths cave-system [:start])
+         (filter #(path-with-only-once-small-cave? % small-caves))
+         (count))))
+
 
 (defn part2 [edges])
 
@@ -50,33 +82,7 @@
   "pj-he" "RW-he" "fs-DX" "pj-RW" "zg-RW" "start-pj" "he-WI" "zg-he"
   "pj-fs" "start-R"])
 
-(def g1 ;; convert-to-map
-  {:start [:A :b]
-   :A [:c :b :end]
-   :b [:A :d :end]
-   :c [:A]
-   :d [:b]})
-
-(defn path-with-only-once-small-cave? [path small-caves]
-  (->> small-caves
-       (map (frequencies path))
-       (remove nil?)
-       (every? #(<= % 1))))
-
-
-(comment
-  (every? #(<= % 1) '(2))
-  ;; try loom
-  (let [graph (apply graph/graph (->nodes example-1))
-        small-caves [:b :c :d]]
-        ;; nodes (reduce-kv (fn [m k v] (assoc m k (vec v))) {} (:adj graph))]
-     (count (filter #(path-with-only-once-small-cave? % small-caves) (alg-gen/trace-paths g1 :start)))))
-     ;; graph))
-     ;; (alg/bf-path-bi graph :start :end)))
-     ;; graph
-     ;; (graph/nodes graph)))
-
 (deftest test-example
-  (is (= 10 (part1 example-1))))
-  ;; (is (= 19 (part1 example-2)))
+  (is (= 10 (part1 example-1)))
+  (is (= 19 (part1 example-2))))
   ;; (is (= 226 (part1 example-3))))
