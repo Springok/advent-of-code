@@ -25,6 +25,11 @@
   [s]
   (map read-string (re-seq #"-?\d+" s)))
 
+(defn strs->integers
+  "Return a collection of integers by parsing each str"
+  [strs]
+  (map #(Integer/parseInt %) strs))
+
 (comment
   (->integers "12 123 123123 12312")
   (read-file "../resources/aoc/day4.txt")
