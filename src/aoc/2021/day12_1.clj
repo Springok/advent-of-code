@@ -1,12 +1,13 @@
 ; [Day 12 - Advent of Code 2021](https://adventofcode.com/2021/day/12)
-(ns aoc.2021.day12
+(ns aoc.2021.day12-1
   (:require
     [aoc.util :as util]
     [clojure.string :as str]
     [clojure.test :refer [deftest is]]))
 
 (def input
-  (->> (util/read-file-by-line "../resources/aoc/2021/day12.txt")))
+  (->> (util/read-file-by-line "../resources/aoc/2021/day12.txt"))
+  (->> (util/read-file "../resources/aoc/2021/day12.txt")))
 
 (defn parse-graph [lines]
   (apply merge-with into

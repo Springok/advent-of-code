@@ -8,7 +8,7 @@
 (defn read-file
   "Return full file contents from `path`."
   [path]
-  (-> path io/resource slurp str/trim-newline))
+  (-> path io/resource slurp))
 
 (defn read-chunks
   "Return file contents as collection of chunks, where chunks are separated by a
