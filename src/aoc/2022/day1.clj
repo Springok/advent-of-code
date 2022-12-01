@@ -21,8 +21,8 @@
 (defn part2 [records]
   (->> records
        (map #(apply + %))
-       (sort)
-       (take-last 3)
+       (sort >)
+       (take 3)
        (apply +)))
 
 (deftest test-example
