@@ -20,6 +20,13 @@
   [path]
   (-> path read-file str/split-lines))
 
+(defn board
+  "Return a vector contains n x n size of input"
+  [input]
+  (let [board (->> input
+                   (mapv (fn [line] (mapv #(Integer/parseInt (str %)) line))))]
+    board))
+
 (defn ->integers
   "Return a collection of integers found in a string.  Integers may be negative."
   [s]
@@ -32,9 +39,9 @@
 
 (comment
   (->integers "12 123 123123 12312")
-  (read-file "../resources/aoc/day4.txt")
-  (read-file-by-line "../resources/aoc/day4.txt")
-  (read-chunks "../resources/aoc/day4.txt")
-  (map #(str/join " " %) (map str/split-lines (read-chunks "../resources/aoc/day4.txt")))
-
-  (map str/trim-newline (read-chunks "../resources/aoc/day4.txt")))
+  (read-file "../resources/aoc/2021/day4.txt")
+  (read-file-by-line "../resources/aoc/2021/day4.txt")
+  (read-chunks "../resources/aoc/2021/day4.txt")
+  (board (read-file-by-line "../resources/aoc/2021/day15-ex.txt"))
+  (map str/trim-newline (read-chunks "../resources/aoc/2021/day4.txt"))
+  (map #(str/join " " %) (map str/split-lines (read-chunks "../resources/aoc/2021/day4.txt"))))
