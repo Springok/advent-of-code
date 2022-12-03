@@ -3,16 +3,13 @@
     [aoc.util :as util]
     [clojure.test :refer [deftest is]]))
 
-(defn remove-space [a]
-   (remove #(= \space %) a))
-
 (def example
   [[\A \Y] [\B \X] [\C \Z]])
 
 (def input
   (->> (util/read-file-by-line "../resources/aoc/2022/day2.txt")
        (map char-array)
-       (map remove-space)))
+       (map (fn [[a _space b]] [a b]))))
 
 (def scores
   {\X {\A (+ 1 3) \B (+ 1 0) \C (+ 1 6)}
