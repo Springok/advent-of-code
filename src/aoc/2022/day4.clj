@@ -17,20 +17,24 @@
        (map (fn [[start end]]
               (set (range start (inc end)))))))
 
-(defn part1 [input]
+(defn fully? [[a1 a2]]
+  (or (cset/subset? a1 a2)
+      (cset/subset? a2 a1)))
+
+(defn partially? [[a1 a2]]
+  (seq (cset/intersection a1 a2)))
+
+(defn solve [input filter-fn]
   (->> input
        (map parse-sections)
-       (filterv (fn [[a1 a2]]
-                  (or (cset/subset? a1 a2)
-                      (cset/subset? a2 a1))))
+       (filterv filter-fn)
        (count)))
 
+(defn part1 [input]
+  (solve input fully?))
+
 (defn part2 [input]
-  (->> input
-       (map parse-sections)
-       (filterv (fn [[a1 a2]]
-                   (seq (cset/intersection a1 a2))))
-       (count)))
+  (solve input partially?))
 
 (deftest test-example
   (is (= 2 (part1 example)))
