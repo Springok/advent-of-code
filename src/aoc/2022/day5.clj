@@ -30,13 +30,20 @@
       (map #(re-seq #"\d+" %))
       (map #(map read-string %))))
 
-(defn move [mover-fn stacks [crates from to]]
-  (-> stacks
-    (update from #(drop-last crates %))
-    (update to #(concat % (mover-fn (take-last crates (get stacks from)))))))
+(defn move [mover-fn stacks [n-crates from to]]
+  (let [crates (take-last n-crates (get stacks from))]
+    (-> stacks
+      (update from #(drop-last n-crates %))
+      (update to mover-fn crates))))
+
+(defn mover-9000 [stack crates]
+  (concat stack (reverse crates)))
+
+(defn mover-9001 [stack crates]
+  (concat stack crates))
 
 (defn solve [mover-type stacks moves]
-  (let [mover-fn (if (= :9001 mover-type) identity reverse)]
+  (let [mover-fn (if (= :9001 mover-type) mover-9001 mover-9000)]
     (->> (reduce (partial move mover-fn) stacks (parse-moves moves))
          (into (sorted-map))
          (vals)
