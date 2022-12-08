@@ -26,27 +26,27 @@
         s-trees (drop 1 s-trees)]
    [e-trees w-trees n-trees s-trees]))
 
-(defn visibility [h-map [i j]]
+(defn visibile? [h-map [i j]]
   (let [current-h (get-h h-map [i j])]
-    (if (->> (trees-height-in-4-directions h-map [i j])
-             (map (fn [trees] (every? #(< % current-h) trees)))
-             (apply or))
-      1 0)))
+    (->> (trees-height-in-4-directions h-map [i j])
+         (map (fn [trees] (every? #(< % current-h) trees)))
+         (some true?))))
 
 (defn visibility-map [input]
   (let [i-count (count (first input))
         j-count (count input)]
     (for [i (range i-count)
           j (range j-count)]
-      (if (or (= i 0) (= j 0) (= i (dec i-count)) (= j (dec j-count)))
-        1
-        (visibility input [i j])))))
+      (if (or (= i 0) (= i (dec i-count))
+              (= j 0) (= j (dec j-count))
+              (visibile? input [i j]))
+        1 0))))
 
 (comment
   (get-h input [0 0])
   (get-h example [4 3])
-  (visibility example [1 1])
-  (visibility example [2 3]))
+  (visibile? example [1 1])
+  (visibile? example [2 3]))
 
 (defn see-trees [h tree-hs]
   (loop [hs tree-hs
