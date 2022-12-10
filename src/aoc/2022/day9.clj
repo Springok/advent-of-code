@@ -2,22 +2,26 @@
   (:require
     [aoc.util :as util]
     [clojure.string :as s]
-    [clojure.test :refer [deftest is]]))
+    [clojure.test :refer [deftest is]]
+    [clojure.math :as math]))
 
 (def example
-  (->> (util/read-file-by-line "../resources/aoc/2022/day9-ex.txt")
-       (map #(s/split % #" "))
-       (map (fn [[command steps]] [command (read-string steps)]))))
+  (util/read-file-by-line "../resources/aoc/2022/day9-ex.txt"))
 
-(def example-2
-  (->> (util/read-file-by-line "../resources/aoc/2022/day9-ex2.txt")
-       (map #(s/split % #" "))
-       (map (fn [[command steps]] [command (read-string steps)]))))
+(def example2
+  (util/read-file-by-line "../resources/aoc/2022/day9-ex2.txt"))
 
 (def input
-  (->> (util/read-file-by-line "../resources/aoc/2022/day9.txt")
+  (util/read-file-by-line "../resources/aoc/2022/day9.txt"))
+
+(defn parse-commands [input]
+  (->> input
        (map #(s/split % #" "))
-       (map (fn [[command steps]] [command (read-string steps)]))))
+       (map (fn [[command steps]] [command (read-string steps)]))
+       (mapcat (fn [[cmd n]] (repeat n cmd)))))
+
+(comment
+  (parse-commands example))
 
 (defn next-tails [[x y]]
   [[x y]
@@ -40,93 +44,65 @@
 (defn step [[head-x head-y :as head] [tail-x tail-y :as tail] dir]
   (let [next-head (normal-step head dir)]
     (cond
-      ; (= head tail) [next-head tail] ; cover
       (some #(= next-head %) (next-tails tail)) [next-head tail] ; cover / touching
-      (and (not= head-x tail-x) (not= head-y tail-y)) [next-head head] ; diagonal-follow
+      (and (not= head-x tail-x) (not= head-y tail-y)) [next-head head] ; diagonal-follow, applicable to 2 knots only...
       :else [next-head (normal-step tail dir)])))
 
-(defn next-state [init-state [dir steps]]
-  (loop [remaining-steps steps
-         state init-state]
-    (if (= 0 remaining-steps)
-      state
-      (let [{:keys [head tail]} state
-            [next-head next-tail] (step head tail dir)]
-        (recur (dec remaining-steps)
-               (-> state
-                   (assoc :head next-head)
-                   (assoc :tail next-tail)
-                   (update :visited-tail conj next-tail)))))))
+(defn next-state [state dir]
+  (let [{:keys [head tail]} state
+        [next-head next-tail] (step head tail dir)]
+    (-> state
+        (assoc :head next-head)
+        (assoc :tail next-tail)
+        (update :visited-tail conj next-tail))))
 
-(comment
-  (next-state {:head [0 0] :tail [0 0] :visited-tail #{}} ["R" 2])
-  (-> (next-state (next-state {:head [0 0] :tail [0 0] :visited-tail #{}} ["R" 4]) ["U" 4])
+(defn part1 [input]
+  (-> (reduce next-state {:head [0 0] :tail [0 0] :visited-tail #{}} (parse-commands input))
       (get :visited-tail)
       (count)))
 
-(defn part1 [input]
-  (let [initial-state {:head [0 0] :tail [0 0] :visited-tail #{}}]
-    (-> (reduce next-state initial-state input)
-        (get :visited-tail)
-        (count))))
+; ===== Part 2 ====
+; refer to other's approach on tail-step
+; =================
 
-(defn tail-step [[head-x head-y :as head] [tail-x tail-y :as tail] dir]
-  (let [next-head (normal-step head dir)]
-    (cond
-      ; (= head tail) [next-head tail] ; cover
-      (some #(= next-head %) (next-tails tail)) tail ; cover / touching
-      (and (not= head-x tail-x) (not= head-y tail-y)) head ; diagonal-follow
-      :else (normal-step tail dir))))
+(defn sub [a b] (mapv - a b))
+
+(defn add [a b] (mapv + a b))
+
+(defn direction [a b]
+  (let [[dx dy] (sub a b)]
+    [(long (math/signum dx)) (long (math/signum dy))]))
+
+(defn tail-step [head tail]
+  (if (some #(= head %) (next-tails tail))
+    tail ; cover / touching
+    (add tail (direction head tail))))
 
 (defn knots-step [knots dir]
-  (let [[first-head first-tail] (take 2 knots)
-         next-head (normal-step first-head dir)
-         next-first-tail (tail-step first-head first-tail dir)
-         pairs (partition 2 1 (concat [next-first-tail] (drop 1 knots)))]
+  (let [first-head (first knots)
+        tails (drop 1 knots)
+        next-head (normal-step first-head dir)]
      (reduce
-       (fn [knots [head tail]]
-         (conj knots (tail-step head tail dir)))
+       (fn [knots tail]
+         (conj knots (tail-step (peek knots) tail)))
       [next-head]
-      pairs)))
-  ; [1,0] [0,0]....
+      tails)))
 
-(comment
-  (let [knots (->> (repeat 5 "R")
-                   (reduce #(knots-step %1 %2) (repeat 10 [0 0])))]
-     (prn knots)
-     (->> (repeat 2 "U")
-          (reduce #(knots-step %1 %2) knots))))
-
-; (defn step-2 [[head-x head-y :as head] tails dir]
-;   (let [next-head (normal-step head dir)]
-;     (cond
-;       ; (= head tail) [next-head tail] ; cover
-;       (some #(= next-head %) (next-tails tail)) [next-head tail] ; cover / touching
-;       (and (not= head-x tail-x) (not= head-y tail-y)) [next-head head] ; diagonal-follow
-;       :else [next-head (normal-step tail dir)])))
-
-(defn next-state-2 [init-state [dir steps]]
-  (loop [remaining-steps steps
-         state init-state]
-    (if (= 0 remaining-steps)
-      state
-      (let [{:keys [head tail]} state
-            [next-head next-tail] (step head tail dir)]
-        (recur (dec remaining-steps)
-               (-> state
-                   (assoc :head next-head)
-                   (assoc :tail next-tail)
-                   (update :visited-tail conj next-tail)))))))
+(defn next-state-part2 [state dir]
+  (let [knots (knots-step (:knots state) dir)]
+    (-> state
+        (assoc :knots knots)
+        (update :visited-tail conj (last knots)))))
 
 (defn part2 [input]
-  (let [initial-state {:head [0 0] :tails (repeat 9 [0 0]) :visited-tail #{}}]
-    (-> (reduce next-state initial-state input))))
+  (-> (reduce next-state-part2 {:knots (repeat 10 [0 0]) :visited-tail #{}} (parse-commands input))
+      (get :visited-tail)
+      (count)))
 
 (deftest test-example
-  (is (= 13 (part1 example))))
-  ; (is (= 13 (part2 example))))
+  (is (= 13 (part1 example)))
+  (is (= 36 (part2 example2))))
+
 (comment
-  (first (first (partition 2 1 (take 2 (repeat 10 [0 0])))))
-  (count (identity input))
   (time (part1 input))  ; => 6384, "Elapsed time: 17.967375 msecs"
-  (time (part2 input))) ;
+  (time (part2 input))) ; => 2734, "Elapsed time: 124.812292 msecs"
