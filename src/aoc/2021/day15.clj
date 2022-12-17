@@ -21,18 +21,14 @@
         :let [y' (+ y dy)
               x' (+ x dx)]
         :when (and (< -1 y' (* mag (count board)))
-                   (< -1 x' (* mag (count (first board)))))]
-    [y' x']))
+                   (< -1 x' (* mag (count (first board)))))] [y' x']))
 
 (defn board [input]
   (let [board (->> input
                    (mapv (fn [line] (mapv #(Integer/parseInt (str %)) line))))]
     board))
 
-(defn risk [coord board]
-   (get-in board coord))
-
-(defn risk-2 [[y x] board]
+(defn risk [[y x] board]
   ; 9 -> 1, 10 -> 2, 11 -> 3
   (let [ori-h (count board)
         ori-w (count (first board))
@@ -61,7 +57,7 @@
                 :frontier (into (pop frontier)
                                 (for [coord' (neighbors coord board mag)
                                       :when (not (visited coord'))
-                                      :let [cost' (+ cost (risk-2 coord' board))]]
+                                      :let [cost' (+ cost (risk coord' board))]]
                                   [{:coord coord' :cost cost'} cost']))}
                (inc idx))))))
 
