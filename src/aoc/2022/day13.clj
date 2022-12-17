@@ -29,17 +29,16 @@
 (defn part1 [input]
   (->> (parse-input input)
        (partition 2)
-       (map #(apply compare-ba %))
-       (map-indexed (fn [idx result] (if (neg? result) (inc idx) 0)))
+       (keep-indexed (fn [idx [l r]] (when (neg? (compare-ba l r))
+                                       (inc idx))))
        (apply +)))
 
 (defn part2 [input]
-  (->> (concat [[[2]] [[6]]] (parse-input input))
+  (->> (parse-input input)
+       (concat [[[2]] [[6]]])
        (sort compare-ba)
-       (map-indexed (fn [idx packet] (case packet
-                                      [[2]] (inc idx)
-                                      [[6]] (inc idx)
-                                      1)))
+       (keep-indexed (fn [idx packet] (when (#{[[2]] [[6]]} packet)
+                                        (inc idx))))
        (apply *)))
 
 (defn -main [& _]
