@@ -13,5 +13,6 @@ pom.xml.asc
 .clj-kondo/.cache/
 .clj-kondo/rewrite-clj/
 
+.lsp/
 # auth
 .session
